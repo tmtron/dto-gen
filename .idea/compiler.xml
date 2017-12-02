@@ -4,6 +4,8 @@
     <bytecodeTargetLevel>
       <module name="dto-gen-lib_main" target="1.7" />
       <module name="dto-gen-lib_test" target="1.7" />
+      <module name="dto-gen-processor_main" target="1.8" />
+      <module name="dto-gen-processor_test" target="1.8" />
       <module name="dto-gen_main" target="1.8" />
       <module name="dto-gen_test" target="1.8" />
     </bytecodeTargetLevel>

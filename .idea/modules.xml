@@ -6,6 +6,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dto-gen-lib.iml" filepath="$PROJECT_DIR$/.idea/modules/dto-gen-lib.iml" group="dto-gen-lib" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dto-gen-lib/dto-gen-lib_main.iml" filepath="$PROJECT_DIR$/.idea/modules/dto-gen-lib/dto-gen-lib_main.iml" group="dto-gen-lib" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dto-gen-lib/dto-gen-lib_test.iml" filepath="$PROJECT_DIR$/.idea/modules/dto-gen-lib/dto-gen-lib_test.iml" group="dto-gen-lib" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dto-gen-processor.iml" filepath="$PROJECT_DIR$/.idea/modules/dto-gen-processor.iml" group="dto-gen-processor" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dto-gen-processor/dto-gen-processor_main.iml" filepath="$PROJECT_DIR$/.idea/modules/dto-gen-processor/dto-gen-processor_main.iml" group="dto-gen-processor" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/dto-gen-processor/dto-gen-processor_test.iml" filepath="$PROJECT_DIR$/.idea/modules/dto-gen-processor/dto-gen-processor_test.iml" group="dto-gen-processor" />
     </modules>
   </component>
 </project>

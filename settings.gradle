@@ -1,3 +1,4 @@
 rootProject.name = 'dto-gen'
 include 'dto-gen-lib'
+include 'dto-gen-processor'
 

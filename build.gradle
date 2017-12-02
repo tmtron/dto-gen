@@ -1,3 +1,45 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        maven {
+            // for gradle-apt-plugin
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        /* gradle-apt-plugin
+         * this will make sure, that the generated java source files end up in
+         *   build/generated/source/apt/main/com/tmtron/...
+         * (instead of: build/classes/...)
+         *
+         * in plain java-projects, also apply the idea plugin which will make sure that
+         * the Idea IDE also knows and handles all annotation processors on the classpath
+         *
+         * https://github.com/tbroyer/gradle-apt-plugin/releases
+         */
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.13"
+
+        classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0"
+    }
+}
+
+plugins {
+    /* this plugin can check for newer versions of the used dependencies.
+     * run it from the command line like this:
+     * ./gradlew dependencyUpdates
+     * see also: https://github.com/ben-manes/gradle-versions-plugin
+     *
+     * in Android Studio open the gradle projects view and start
+     * Tasks - help - dependencyUpdates
+     *
+     * alternative:
+     * IntelliJ: Analyze - Inspect code
+     *   the results in the Inspection view will contain dependencies that can be updated
+     *   Android>Lint>Correctness>Obsolete Gradle Dependency
+     */
+    id 'com.github.ben-manes.versions' version '0.17.0'
+}
 
 subprojects {
     group 'com.tmtron.dtogen'
@@ -12,5 +54,15 @@ subprojects {
 
     dependencies {
         testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+
+    apply plugin: "com.github.hierynomus.license"
+    license {
+        header rootProject.file('LICENSE_HEADER')
+        strictCheck true
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+        }
+        ext.year = Calendar.getInstance().get(Calendar.YEAR)
     }
 }
