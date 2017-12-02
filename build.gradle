@@ -1,0 +1,16 @@
+
+subprojects {
+    group 'com.tmtron.dtogen'
+    version '1.0-SNAPSHOT'
+    description 'Annotation processor to easily generate DTOs'
+
+    repositories {
+        mavenCentral()
+    }
+
+    apply plugin: 'java'
+
+    dependencies {
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+}
