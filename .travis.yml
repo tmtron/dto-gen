@@ -1,5 +1,7 @@
 language: java
 
+# https://travis-ci.org/tmtron/dto-gen
+
 # validate this file online: http://lint.travis-ci.org/
 
 # see https://medium.com/@nicole_a_tesla/how-i-made-travis-ci-gradle-work-5c7a540ef639
