@@ -107,7 +107,7 @@ public class DtoConfigElementProcessor {
                         String fieldInitializer = codeScanner.getFieldInitializerOrBlank(elementAnnotatedWithDtoConfig
                                 , variableElement.getSimpleName().toString());
                         if (fieldInitializer.endsWith("()")) {
-                            String memberName = fieldInitializer.substring(0, fieldInitializer.length() - 2);
+                            String memberName = StringUtils.removeLastChars(fieldInitializer, 2);
                             membersToIgnore.add(memberName);
                         }
                         break;
@@ -187,7 +187,7 @@ public class DtoConfigElementProcessor {
     private String getTargetClassName() {
         String targetClassName = elementAnnotatedWithDtoConfig.getQualifiedName().toString();
         if (targetClassName.endsWith("_")) {
-            targetClassName = targetClassName.substring(0, targetClassName.length() - 1);
+            targetClassName = StringUtils.removeLastChars(targetClassName, 1);
         }
         return targetClassName;
     }
