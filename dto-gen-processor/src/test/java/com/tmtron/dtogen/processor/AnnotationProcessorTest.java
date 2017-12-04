@@ -16,6 +16,7 @@
 package com.tmtron.dtogen.processor;
 
 import com.google.common.truth.Truth;
+import com.google.testing.compile.CompileTester;
 import com.google.testing.compile.JavaFileObjects;
 import com.google.testing.compile.JavaSourceSubjectFactory;
 
@@ -57,13 +58,18 @@ class AnnotationProcessorTest {
         return JavaFileObjects.forResource(resourceUrl);
     }
 
-    public void assertGenerationWithoutWarnings(String templateFile, String expectedOutputFile) {
-        Truth.assertAbout(JavaSourceSubjectFactory.javaSource())
+    public CompileTester assertGeneration(String templateFile, String expectedOutputFile) {
+        return Truth.assertAbout(JavaSourceSubjectFactory.javaSource())
                 .that(getJfoResource(templateFile))
                 // otherwise we get this warning:
                 // No processor claimed any of these annotations: com.tmtron.enums.annotation.EnumMappers
                 .withCompilerOptions("-Xlint:-processing")
-                .processedWith(new DtoGenAnnotationProcessor())
+                .processedWith(new DtoGenAnnotationProcessor());
+
+    }
+
+    public void assertGenerationWithoutWarnings(String templateFile, String expectedOutputFile) {
+        assertGeneration(templateFile, expectedOutputFile)
                 .compilesWithoutWarnings()
                 .and()
                 .generatesSources(getJfoResource(expectedOutputFile));

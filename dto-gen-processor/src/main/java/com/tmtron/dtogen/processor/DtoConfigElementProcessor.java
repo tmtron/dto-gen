@@ -61,8 +61,14 @@ public class DtoConfigElementProcessor {
         List<? extends TypeMirror> interfaces = classTypeElement.getInterfaces();
         for (TypeMirror interfaceTm : interfaces) {
             TypeElement interfaceTypeElement = MoreTypes.asTypeElement(interfaceTm);
-            processInterface(interfaceTypeElement);
+            processTemplateElement(interfaceTypeElement);
         }
+        TypeMirror superclass = classTypeElement.getSuperclass();
+        TypeElement superClassTypeElement = MoreTypes.asTypeElement(superclass);
+        if (!superClassTypeElement.getSimpleName().contentEquals(Object.class.getSimpleName())) {
+            processTemplateElement(superClassTypeElement);
+        }
+
         return typeSpecBuilder.build();
     }
 
@@ -75,8 +81,8 @@ public class DtoConfigElementProcessor {
         return null;
     }
 
-    private void processInterface(TypeElement interfaceTypeElement) {
-        for (Element element : interfaceTypeElement.getEnclosedElements()) {
+    private void processTemplateElement(TypeElement templateTypeElement) {
+        for (Element element : templateTypeElement.getEnclosedElements()) {
             switch (element.getKind()) {
                 case METHOD:
                     ExecutableElement methodExecutableElement = (ExecutableElement) element;
@@ -93,7 +99,7 @@ public class DtoConfigElementProcessor {
                     }
                     break;
                 default:
-                    throw new RuntimeException("Unsupported element type: " + element.getKind().name());
+                    // IGNORE
             }
         }
     }
