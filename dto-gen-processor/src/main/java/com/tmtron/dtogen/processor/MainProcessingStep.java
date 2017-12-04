@@ -16,14 +16,19 @@
 package com.tmtron.dtogen.processor;
 
 import com.google.auto.common.BasicAnnotationProcessor;
+import com.google.auto.common.MoreTypes;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
 
 /**
  * Processing step for the {@link DtoConfig} annotation
@@ -43,7 +48,33 @@ public class MainProcessingStep implements BasicAnnotationProcessor.ProcessingSt
 
     @Override
     public Set<Element> process(SetMultimap<Class<? extends Annotation>, Element> elementsByAnnotation) {
-        // TODO: implement
-        return null;
+        try {
+            if (elementsByAnnotation.size() != 1) {
+                throw new Exception("Exactly one "+DtoConfig.class.getName()+" annotation is required!");
+            }
+
+            Set<Element> elementsAnnotatedWithDtoConfig = elementsByAnnotation.get(DtoConfig.class);
+            processDtoConfig(elementsAnnotatedWithDtoConfig);
+        } catch (Exception e) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    "Annotation processing error: " + e.getClass().getSimpleName() + "-" + e.getMessage());
+        }
+
+        return Collections.emptySet();
+    }
+
+    private void processDtoConfig(Set<Element> elementsAnnotatedWithDtoConfig) {
+        for (Element element : elementsAnnotatedWithDtoConfig) {
+            try {
+                TypeMirror classTypeMirror = element.asType();
+                TypeElement classTypeElement = MoreTypes.asTypeElement(classTypeMirror);
+                // e.g. classTypeElement.getQualifiedName() = com.tmtron.dtogen.processor.test.User.class
+                new DtoConfigElementProcessor(processingEnv, classTypeElement).work();
+            } catch (Exception e) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR
+                        , "Annotation processing error: " + e.getClass().getSimpleName() + "-" + e.getMessage()
+                        , element);
+            }
+        }
     }
 }

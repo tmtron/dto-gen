@@ -15,21 +15,12 @@
  */
 package com.tmtron.dtogen.processor;
 
-import com.google.common.truth.Truth;
-import com.google.testing.compile.JavaSourceSubjectFactory;
-
 import org.junit.Test;
 
-public class SimpleTest extends AnnotationProcessorTest {
+public class SimpleUserTest extends AnnotationProcessorTest {
 
     @Test
-    public void test() throws Exception {
-        Truth.assertAbout(JavaSourceSubjectFactory.javaSource())
-                .that(getJfoResource("DtoConfig.java"))
-                .processedWith(new DtoGenAnnotationProcessor())
-                .compilesWithoutWarnings()
-                .and()
-                .generatesSources(
-                        getJfoResource("DtoConfigOut.java"));
+    public void test() {
+        assertGenerationWithoutWarnings("UserDto_.java", "UserDto.java");
     }
 }

@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tmtron.dtogen.test;
+package com.tmtron.dtogen.processor.test;
 
 import com.tmtron.dtogen.processor.DtoConfig;
 
+import org.immutables.value.Value;
+
 @DtoConfig
-public class UserDto_ implements User {
+@Value.Immutable
+public abstract class UserDto_ implements User {
 }
