@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tmtron.dtogen.processor;
+package com.tmtron.dtogen.processor.test;
 
-import org.junit.Test;
+// the @DtoConfig annotation must be skipped
+public abstract class SimpleCopy {
 
-public class InterfaceClassTest extends AnnotationProcessorTest {
-
-    @Test
-    public void test() {
-        assertGenerationWithoutWarnings("UserDto");
-    }
+    // the id field must be copied
+    public abstract String id();
 }
