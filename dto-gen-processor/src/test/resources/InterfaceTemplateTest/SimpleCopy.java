@@ -15,11 +15,8 @@
  */
 package com.tmtron.dtogen.processor.test;
 
-import com.tmtron.dtogen.processor.DtoConfig;
+public abstract class SimpleCopy {
+    public abstract String firstName();
 
-import org.immutables.value.Value;
-
-@DtoConfig
-@Value.Immutable
-public abstract class UserDto_ implements IUser {
+    public abstract String lastName();
 }
