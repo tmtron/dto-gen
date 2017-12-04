@@ -17,7 +17,7 @@ package com.tmtron.dtogen.processor;
 
 import org.junit.Test;
 
-public class SimpleUserTest extends AnnotationProcessorTest {
+public class InterfaceClassTest extends AnnotationProcessorTest {
 
     @Test
     public void test() {
