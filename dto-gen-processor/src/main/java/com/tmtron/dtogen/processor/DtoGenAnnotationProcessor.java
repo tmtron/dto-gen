@@ -26,7 +26,6 @@ import javax.lang.model.SourceVersion;
 @AutoService(Processor.class)
 public class DtoGenAnnotationProcessor extends BasicAnnotationProcessor {
 
-
     @Override
     protected Iterable<? extends ProcessingStep> initSteps() {
         return Collections.singletonList(new MainProcessingStep(processingEnv));

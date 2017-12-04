@@ -50,7 +50,7 @@ public class MainProcessingStep implements BasicAnnotationProcessor.ProcessingSt
     public Set<Element> process(SetMultimap<Class<? extends Annotation>, Element> elementsByAnnotation) {
         try {
             if (elementsByAnnotation.size() != 1) {
-                throw new Exception("Exactly one "+DtoConfig.class.getName()+" annotation is required!");
+                throw new Exception("Exactly one " + DtoConfig.class.getName() + " annotation is required!");
             }
 
             Set<Element> elementsAnnotatedWithDtoConfig = elementsByAnnotation.get(DtoConfig.class);

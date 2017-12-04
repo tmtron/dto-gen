@@ -5,15 +5,10 @@ import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -22,10 +17,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
 import javax.tools.Diagnostic;
 
 public class DtoConfigElementProcessor {
@@ -68,8 +60,8 @@ public class DtoConfigElementProcessor {
 
         List<? extends TypeMirror> interfaces = classTypeElement.getInterfaces();
         for (TypeMirror interfaceTm : interfaces) {
-            TypeElement interfaceEt = MoreTypes.asTypeElement(interfaceTm);
-            processInterface(interfaceEt);
+            TypeElement interfaceTypeElement = MoreTypes.asTypeElement(interfaceTm);
+            processInterface(interfaceTypeElement);
         }
         return typeSpecBuilder.build();
     }
@@ -83,52 +75,18 @@ public class DtoConfigElementProcessor {
         return null;
     }
 
-    static List<ParameterSpec> parametersOf(ExecutableElement method) {
-        List<ParameterSpec> result = new ArrayList<>();
-        for (VariableElement parameter : method.getParameters()) {
-            result.add(ParameterSpec.get(parameter));
-        }
-        return result;
-    }
-
-    /**
-     * @see MethodSpec#overriding(ExecutableElement)
-     */
-    public static MethodSpec.Builder copyMethod(ExecutableElement method) {
-        String methodName = method.getSimpleName().toString();
-        Set<Modifier> modifiers = method.getModifiers();
-
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName);
-        methodBuilder.addModifiers(modifiers);
-
-        for (TypeParameterElement typeParameterElement : method.getTypeParameters()) {
-            TypeVariable var = (TypeVariable) typeParameterElement.asType();
-            methodBuilder.addTypeVariable(TypeVariableName.get(var));
-        }
-
-        methodBuilder.returns(TypeName.get(method.getReturnType()));
-        methodBuilder.addParameters(parametersOf(method));
-        methodBuilder.varargs(method.isVarArgs());
-
-        for (TypeMirror thrownType : method.getThrownTypes()) {
-            methodBuilder.addException(TypeName.get(thrownType));
-        }
-
-        return methodBuilder;
-    }
-
-    private void processInterface(TypeElement interfaceEt) {
-        for (Element element : interfaceEt.getEnclosedElements()) {
+    private void processInterface(TypeElement interfaceTypeElement) {
+        for (Element element : interfaceTypeElement.getEnclosedElements()) {
             switch (element.getKind()) {
                 case METHOD:
                     ExecutableElement methodExecutableElement = (ExecutableElement) element;
 
-                    Element tmplElementOrNull = getElementFromTemplateOrNull(element.getSimpleName());
-                    if (tmplElementOrNull != null) {
+                    Element templateElementOrNull = getElementFromTemplateOrNull(element.getSimpleName());
+                    if (templateElementOrNull != null) {
                         // the template has an element with this name - use it
                     } else {
                         // the template does not have an element with this name - copy it from the implemented interface
-                        MethodSpec.Builder copyMethodBuilder = copyMethod(methodExecutableElement);
+                        MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(methodExecutableElement);
                         typeSpecBuilder.addMethod(copyMethodBuilder.build());
                     }
                     break;
