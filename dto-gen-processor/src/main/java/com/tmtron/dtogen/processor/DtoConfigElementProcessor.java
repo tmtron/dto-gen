@@ -29,11 +29,11 @@ import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 
@@ -43,10 +43,12 @@ public class DtoConfigElementProcessor {
 
     private TypeSpec.Builder typeSpecBuilder;
     private final Set<String> membersToIgnore = new HashSet<>();
+    private final CodeScanner codeScanner;
 
     public DtoConfigElementProcessor(ProcessingEnvironment processingEnv, TypeElement elementAnnotatedWithDtoConfig) {
         this.processingEnv = processingEnv;
         this.elementAnnotatedWithDtoConfig = elementAnnotatedWithDtoConfig;
+        codeScanner = new CodeScanner(processingEnv);
     }
 
     private String getPackageName() {
@@ -96,8 +98,19 @@ public class DtoConfigElementProcessor {
         membersToIgnore.clear();
         for (Element element : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
             if (element.getAnnotation(DtoIgnore.class) != null) {
-                if (element.getKind() == ElementKind.METHOD) {
-                    membersToIgnore.add(element.getSimpleName().toString());
+                switch (element.getKind()) {
+                    case METHOD:
+                        membersToIgnore.add(element.getSimpleName().toString());
+                        break;
+                    case FIELD:
+                        VariableElement variableElement = (VariableElement) element;
+                        String fieldInitializer = codeScanner.getFieldInitializerOrBlank(elementAnnotatedWithDtoConfig
+                                , variableElement.getSimpleName().toString());
+                        if (fieldInitializer.endsWith("()")) {
+                            String memberName = fieldInitializer.substring(0, fieldInitializer.length() - 2);
+                            membersToIgnore.add(memberName);
+                        }
+                        break;
                 }
             }
         }
@@ -174,7 +187,7 @@ public class DtoConfigElementProcessor {
     private String getTargetClassName() {
         String targetClassName = elementAnnotatedWithDtoConfig.getQualifiedName().toString();
         if (targetClassName.endsWith("_")) {
-            targetClassName = targetClassName.substring(1, targetClassName.length() - 1);
+            targetClassName = targetClassName.substring(0, targetClassName.length() - 1);
         }
         return targetClassName;
     }

@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tmtron.dtogen.processor;
+package com.tmtron.dtogen.processor.test;
 
-import org.junit.Test;
+import org.immutables.value.Value;
 
-public class DtoIgnoreTest extends AnnotationProcessorTest {
+@Value.Immutable
+// the class visibility must be public because the template has public (User = package)
+public abstract class UserIgnoreField {
 
-    @Test
-    public void methodWithDtoIgnore() {
-        assertGenerationWithoutWarnings("UserIgnoreMethod");
-    }
+    abstract String lastName();
 
-    @Test
-    public void fieldWithDtoIgnore() {
-        assertGenerationWithoutWarnings("UserIgnoreField");
-    }
-
+    // the function nickName() must not be copied - it has the DtoIgnore annotation
 }

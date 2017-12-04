@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tmtron.dtogen.processor;
+package com.tmtron.dtogen.processor.test;
 
-import org.junit.Test;
+import com.tmtron.dtogen.processor.DtoConfig;
+import com.tmtron.dtogen.processor.DtoIgnore;
 
-public class DtoIgnoreTest extends AnnotationProcessorTest {
+import org.immutables.value.Value;
 
-    @Test
-    public void methodWithDtoIgnore() {
-        assertGenerationWithoutWarnings("UserIgnoreMethod");
-    }
+@DtoConfig
+@Value.Immutable
+public abstract class UserIgnoreField_ extends UserIgnore {
 
-    @Test
-    public void fieldWithDtoIgnore() {
-        assertGenerationWithoutWarnings("UserIgnoreField");
-    }
+    @DtoIgnore
+    Object dummy = nickName();
 
 }
