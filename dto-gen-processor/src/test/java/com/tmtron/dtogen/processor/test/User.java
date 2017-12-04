@@ -20,6 +20,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 abstract class User {
 
+    @Value.Auxiliary
     protected abstract String firstName();
 
     abstract String lastName();

@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -121,15 +120,8 @@ public class DtoConfigElementProcessor {
 
     private void copyClassAnnotations() {
         // copy all annotations, ..
-        List<? extends AnnotationMirror> annotationMirrors = classTypeElement.getAnnotationMirrors();
-        for (AnnotationMirror annotationMirror : annotationMirrors) {
-            Name simpleName = annotationMirror.getAnnotationType().asElement().getSimpleName();
-            // .. except for the DtoConfig annotation
-            if (!simpleName.toString().equals(DtoConfig.class.getSimpleName())) {
-                AnnotationSpec annotationSpec = AnnotationSpec.get(annotationMirror);
-                typeSpecBuilder.addAnnotation(annotationSpec);
-            }
-        }
+        List<AnnotationSpec> annotationSpecs = JavaPoetUtil.getAnnotationSpecs(classTypeElement);
+        typeSpecBuilder.addAnnotations(annotationSpecs);
     }
 
     private void copyClassModifiers() {

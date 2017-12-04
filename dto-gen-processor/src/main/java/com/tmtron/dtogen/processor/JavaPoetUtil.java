@@ -15,6 +15,7 @@
  */
 package com.tmtron.dtogen.processor;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
@@ -24,8 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import javax.lang.model.AnnotatedConstruct;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -66,6 +70,23 @@ public class JavaPoetUtil {
             methodBuilder.addException(TypeName.get(thrownType));
         }
 
+        // copy all annotations, ..
+        methodBuilder.addAnnotations(getAnnotationSpecs(method));
+
         return methodBuilder;
+    }
+
+    public static List<AnnotationSpec> getAnnotationSpecs(AnnotatedConstruct executableElement) {
+        List<AnnotationSpec> result = new ArrayList<>();
+        List<? extends AnnotationMirror> annotationMirrors = executableElement.getAnnotationMirrors();
+        for (AnnotationMirror annotationMirror : annotationMirrors) {
+            Name simpleName = annotationMirror.getAnnotationType().asElement().getSimpleName();
+            // .. except for the DtoConfig annotation
+            if (!simpleName.toString().equals(DtoConfig.class.getSimpleName())) {
+                AnnotationSpec annotationSpec = AnnotationSpec.get(annotationMirror);
+                result.add(annotationSpec);
+            }
+        }
+        return result;
     }
 }

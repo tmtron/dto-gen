@@ -20,6 +20,8 @@ import org.immutables.value.Value;
 @Value.Immutable
 // the class visibility must be public because the template has public (User = package)
 public abstract class UserDto {
+    // the annotation must be copied
+    @Value.Auxiliary
     // the visibility must be protected (same as in the User class) because the template does not override it
     protected abstract String firstName();
 
