@@ -68,7 +68,19 @@ class AnnotationProcessorTest {
 
     }
 
-    public void assertGenerationWithoutWarnings(String templateFile, String expectedOutputFile) {
+    /**
+     * In the corresponding resources directory, these files must exist:
+     * <ul>
+     * <li>[filename]_.java: the template file</li>
+     * <li>[filename].java: the expected generated file</li>
+     * </ul>
+     *
+     * @param fileName
+     */
+    public void assertGenerationWithoutWarnings(String fileName) {
+        final String templateFile = fileName + "_.java";
+        final String expectedOutputFile = fileName + ".java";
+        
         assertGeneration(templateFile, expectedOutputFile)
                 .compilesWithoutWarnings()
                 .and()

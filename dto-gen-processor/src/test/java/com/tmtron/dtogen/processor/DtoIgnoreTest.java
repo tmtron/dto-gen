@@ -21,6 +21,6 @@ public class DtoIgnoreTest extends AnnotationProcessorTest {
 
     @Test
     public void methodWithDtoIgnore() {
-        assertGenerationWithoutWarnings("UserIgnoreMethod_.java", "UserIgnoreMethod.java");
+        assertGenerationWithoutWarnings("UserIgnoreMethod");
     }
 }

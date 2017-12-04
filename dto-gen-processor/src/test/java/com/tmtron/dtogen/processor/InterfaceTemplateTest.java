@@ -21,6 +21,6 @@ public class InterfaceTemplateTest extends AnnotationProcessorTest {
 
     @Test
     public void test() {
-        assertGenerationWithoutWarnings("UserDto_.java", "UserDto.java");
+        assertGenerationWithoutWarnings("UserDto");
     }
 }
