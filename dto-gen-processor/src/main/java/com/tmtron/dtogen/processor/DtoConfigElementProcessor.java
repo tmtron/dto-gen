@@ -23,10 +23,13 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
@@ -36,23 +39,25 @@ import javax.tools.Diagnostic;
 
 public class DtoConfigElementProcessor {
     private final ProcessingEnvironment processingEnv;
-    private final TypeElement classTypeElement;
+    private final TypeElement elementAnnotatedWithDtoConfig;
 
     private TypeSpec.Builder typeSpecBuilder;
+    private final Set<String> membersToIgnore = new HashSet<>();
 
-    public DtoConfigElementProcessor(ProcessingEnvironment processingEnv, TypeElement classTypeElement) {
+    public DtoConfigElementProcessor(ProcessingEnvironment processingEnv, TypeElement elementAnnotatedWithDtoConfig) {
         this.processingEnv = processingEnv;
-        this.classTypeElement = classTypeElement;
+        this.elementAnnotatedWithDtoConfig = elementAnnotatedWithDtoConfig;
     }
 
     private String getPackageName() {
-        return processingEnv.getElementUtils().getPackageOf(classTypeElement).getQualifiedName().toString();
+        return processingEnv.getElementUtils().getPackageOf(elementAnnotatedWithDtoConfig).getQualifiedName()
+                .toString();
     }
 
     public void work() {
         // e.g."com.tmtron.dtogen.processor.test.User.class"
-        final String msg = "processing DtoConfig for: " + classTypeElement.getQualifiedName();
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, msg, classTypeElement);
+        final String msg = "processing DtoConfig for: " + elementAnnotatedWithDtoConfig.getQualifiedName();
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, msg, elementAnnotatedWithDtoConfig);
 
         try {
             JavaFile.builder(getPackageName(), buildTypeSpec())
@@ -65,6 +70,7 @@ public class DtoConfigElementProcessor {
     }
 
     private TypeSpec buildTypeSpec() {
+        initMembersToIgnore(membersToIgnore);
         typeSpecBuilder = getTypeSpecBuilder();
 
         copyClassModifiers();
@@ -72,22 +78,33 @@ public class DtoConfigElementProcessor {
         // TODO: maybe copy javadoc
         // TODO: do not copy superclass/interfaces - they are only used for the template
 
-        List<? extends TypeMirror> interfaces = classTypeElement.getInterfaces();
+        List<? extends TypeMirror> interfaces = elementAnnotatedWithDtoConfig.getInterfaces();
         for (TypeMirror interfaceTm : interfaces) {
             TypeElement interfaceTypeElement = MoreTypes.asTypeElement(interfaceTm);
-            processTemplateElement(interfaceTypeElement);
+            processSourceElement(interfaceTypeElement);
         }
-        TypeMirror superclass = classTypeElement.getSuperclass();
+        TypeMirror superclass = elementAnnotatedWithDtoConfig.getSuperclass();
         TypeElement superClassTypeElement = MoreTypes.asTypeElement(superclass);
         if (!superClassTypeElement.getSimpleName().contentEquals(Object.class.getSimpleName())) {
-            processTemplateElement(superClassTypeElement);
+            processSourceElement(superClassTypeElement);
         }
 
         return typeSpecBuilder.build();
     }
 
+    private void initMembersToIgnore(Set<String> membersToIgnore) {
+        membersToIgnore.clear();
+        for (Element element : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
+            if (element.getAnnotation(DtoIgnore.class) != null) {
+                if (element.getKind() == ElementKind.METHOD) {
+                    membersToIgnore.add(element.getSimpleName().toString());
+                }
+            }
+        }
+    }
+
     private Element getElementFromTemplateOrNull(Name elementName) {
-        for (Element element : classTypeElement.getEnclosedElements()) {
+        for (Element element : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
             if (element.getSimpleName().contentEquals(elementName)) {
                 return element;
             }
@@ -95,8 +112,15 @@ public class DtoConfigElementProcessor {
         return null;
     }
 
-    private void processTemplateElement(TypeElement templateTypeElement) {
-        for (Element element : templateTypeElement.getEnclosedElements()) {
+    /**
+     * @param sourceTypeElement a source class or interface from which we may copy methods
+     */
+    private void processSourceElement(TypeElement sourceTypeElement) {
+        for (Element element : sourceTypeElement.getEnclosedElements()) {
+            if (membersToIgnore.contains(element.getSimpleName().toString())) {
+                continue;
+            }
+
             switch (element.getKind()) {
                 case METHOD:
                     ExecutableElement methodExecutableElement = (ExecutableElement) element;
@@ -120,12 +144,12 @@ public class DtoConfigElementProcessor {
 
     private void copyClassAnnotations() {
         // copy all annotations, ..
-        List<AnnotationSpec> annotationSpecs = JavaPoetUtil.getAnnotationSpecs(classTypeElement);
+        List<AnnotationSpec> annotationSpecs = JavaPoetUtil.getAnnotationSpecs(elementAnnotatedWithDtoConfig);
         typeSpecBuilder.addAnnotations(annotationSpecs);
     }
 
     private void copyClassModifiers() {
-        Modifier[] modifiers = classTypeElement.getModifiers().toArray(new Modifier[0]);
+        Modifier[] modifiers = elementAnnotatedWithDtoConfig.getModifiers().toArray(new Modifier[0]);
         typeSpecBuilder.addModifiers(modifiers);
     }
 
@@ -134,7 +158,7 @@ public class DtoConfigElementProcessor {
 
         ClassName targetName = ClassName.bestGuess(targetClassName);
         TypeSpec.Builder result;
-        switch (classTypeElement.getKind()) {
+        switch (elementAnnotatedWithDtoConfig.getKind()) {
             case CLASS:
                 result = TypeSpec.classBuilder(targetName);
                 break;
@@ -142,13 +166,13 @@ public class DtoConfigElementProcessor {
                 result = TypeSpec.interfaceBuilder(targetName);
                 break;
             default:
-                throw new RuntimeException("Unsupported type " + classTypeElement.getKind().name());
+                throw new RuntimeException("Unsupported type " + elementAnnotatedWithDtoConfig.getKind().name());
         }
         return result;
     }
 
     private String getTargetClassName() {
-        String targetClassName = classTypeElement.getQualifiedName().toString();
+        String targetClassName = elementAnnotatedWithDtoConfig.getQualifiedName().toString();
         if (targetClassName.endsWith("_")) {
             targetClassName = targetClassName.substring(1, targetClassName.length() - 1);
         }
