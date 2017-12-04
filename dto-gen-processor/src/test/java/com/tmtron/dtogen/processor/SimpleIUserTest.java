@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tmtron.dtogen.processor.test;
+package com.tmtron.dtogen.processor;
 
-import com.tmtron.dtogen.processor.DtoConfig;
+import org.junit.Test;
 
-import org.immutables.value.Value;
+public class SimpleIUserTest extends AnnotationProcessorTest {
 
-@DtoConfig
-@Value.Immutable
-public abstract class UserDto_ implements User {
+    @Test
+    public void test() {
+        assertGenerationWithoutWarnings("UserDto_.java", "UserDto.java");
+    }
 }

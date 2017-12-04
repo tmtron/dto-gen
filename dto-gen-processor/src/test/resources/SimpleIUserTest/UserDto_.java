@@ -15,11 +15,11 @@
  */
 package com.tmtron.dtogen.processor.test;
 
+import com.tmtron.dtogen.processor.DtoConfig;
+
 import org.immutables.value.Value;
 
+@DtoConfig
 @Value.Immutable
-interface User {
-
-    String firstName();
-    String lastName();
+public abstract class UserDto_ implements IUser {
 }

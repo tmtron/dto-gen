@@ -80,14 +80,16 @@ public class DtoConfigElementProcessor {
             switch (element.getKind()) {
                 case METHOD:
                     ExecutableElement methodExecutableElement = (ExecutableElement) element;
-
-                    Element templateElementOrNull = getElementFromTemplateOrNull(element.getSimpleName());
-                    if (templateElementOrNull != null) {
-                        // the template has an element with this name - use it
-                    } else {
-                        // the template does not have an element with this name - copy it from the implemented interface
-                        MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(methodExecutableElement);
-                        typeSpecBuilder.addMethod(copyMethodBuilder.build());
+                    if (element.getModifiers().contains(Modifier.ABSTRACT)) {
+                        Element templateElementOrNull = getElementFromTemplateOrNull(element.getSimpleName());
+                        if (templateElementOrNull != null) {
+                            // the template has an element with this name - use it
+                        } else {
+                            // the template does not have an element with this name - copy it from the implemented
+                            // interface
+                            MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(methodExecutableElement);
+                            typeSpecBuilder.addMethod(copyMethodBuilder.build());
+                        }
                     }
                     break;
                 default:
