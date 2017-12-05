@@ -18,6 +18,20 @@ package com.tmtron.dtogen.processor;
 public class StringUtils {
 
     public static String removeLastChars(String input, int noOfCharsToRemove) {
-        return input.substring(0, input.length() - noOfCharsToRemove);
+        if (noOfCharsToRemove <= 0) return input;
+
+        if (input == null) return "";
+        if (noOfCharsToRemove >= input.length()) return "";
+        int endIndex = input.length() - noOfCharsToRemove;
+        return input.substring(0, endIndex);
+    }
+
+    public static String removeCurlyBraces(String input) {
+        if (input == null) return "";
+
+        if (input.startsWith("{") && input.endsWith("}")) {
+            return input.substring(1, input.length() - 1);
+        }
+        return input;
     }
 }

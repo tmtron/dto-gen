@@ -103,10 +103,15 @@ public class DtoConfigElementProcessor {
             switch (templateElement.getKind()) {
                 case METHOD:
                     ExecutableElement templateMethodExecElement = (ExecutableElement) templateElement;
-                    if (templateMethodExecElement.getModifiers().contains(Modifier.ABSTRACT)) {
-                        MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(templateMethodExecElement);
-                        typeSpecBuilder.addMethod(copyMethodBuilder.build());
+                    MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(templateMethodExecElement);
+                    String methodBodyOrBlank = codeScanner.getMethodBodyOrBlank(elementAnnotatedWithDtoConfig
+                            , templateMethodExecElement.getSimpleName().toString());
+                    if (!methodBodyOrBlank.isEmpty()) {
+                        methodBodyOrBlank = StringUtils.removeCurlyBraces(methodBodyOrBlank);
+                        copyMethodBuilder.addCode(methodBodyOrBlank);
                     }
+
+                    typeSpecBuilder.addMethod(copyMethodBuilder.build());
                     break;
                 default:
                     break;
