@@ -23,6 +23,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -38,6 +39,11 @@ import javax.lang.model.type.TypeVariable;
 
 public class JavaPoetUtil {
 
+    private static final List<String> dtoGenAnnotationClasses = Arrays.asList(
+            DtoConfig.class.getSimpleName()
+            , DtoRename.class.getSimpleName()
+            , DtoIgnore.class.getSimpleName());
+
     public static List<ParameterSpec> getParametersOf(ExecutableElement method) {
         List<ParameterSpec> result = new ArrayList<>();
         for (VariableElement parameter : method.getParameters()) {
@@ -52,10 +58,14 @@ public class JavaPoetUtil {
      * @see MethodSpec#overriding(ExecutableElement)
      */
     public static MethodSpec.Builder copyMethod(ExecutableElement method) {
-        String methodName = method.getSimpleName().toString();
+        String targetMethodName = method.getSimpleName().toString();
+        return copyMethod(method, targetMethodName);
+    }
+
+    public static MethodSpec.Builder copyMethod(ExecutableElement method, String targetMethodName) {
         Set<Modifier> modifiers = method.getModifiers();
 
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName);
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(targetMethodName);
         methodBuilder.addModifiers(modifiers);
 
         for (TypeParameterElement typeParameterElement : method.getTypeParameters()) {
@@ -77,13 +87,17 @@ public class JavaPoetUtil {
         return methodBuilder;
     }
 
-    public static List<AnnotationSpec> getAnnotationSpecs(AnnotatedConstruct executableElement) {
+    private static boolean isDtoGenAnnotation(AnnotationMirror annotationMirror) {
+        Name simpleName = annotationMirror.getAnnotationType().asElement().getSimpleName();
+        return dtoGenAnnotationClasses.contains(simpleName.toString());
+    }
+
+    public static List<AnnotationSpec> getAnnotationSpecs(AnnotatedConstruct annotatedConstruct) {
         List<AnnotationSpec> result = new ArrayList<>();
-        List<? extends AnnotationMirror> annotationMirrors = executableElement.getAnnotationMirrors();
+        List<? extends AnnotationMirror> annotationMirrors = annotatedConstruct.getAnnotationMirrors();
         for (AnnotationMirror annotationMirror : annotationMirrors) {
-            Name simpleName = annotationMirror.getAnnotationType().asElement().getSimpleName();
-            // .. except for the DtoConfig annotation
-            if (!simpleName.toString().equals(DtoConfig.class.getSimpleName())) {
+            // .. except for the our own annotations which are all in the same package
+            if (!isDtoGenAnnotation(annotationMirror)) {
                 AnnotationSpec annotationSpec = AnnotationSpec.get(annotationMirror);
                 result.add(annotationSpec);
             }

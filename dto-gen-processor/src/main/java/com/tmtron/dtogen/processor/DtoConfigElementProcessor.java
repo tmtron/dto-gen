@@ -24,8 +24,10 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -44,6 +46,11 @@ public class DtoConfigElementProcessor {
 
     private TypeSpec.Builder typeSpecBuilder;
     private final Set<String> doNotCopyFromSources = new HashSet<>();
+    /**
+     * key: name in source
+     * value: name in target
+     */
+    private final Map<String, String> renameFromTo = new HashMap<>();
     private final CodeScanner codeScanner;
 
     public DtoConfigElementProcessor(ProcessingEnvironment processingEnv, TypeElement elementAnnotatedWithDtoConfig) {
@@ -73,7 +80,7 @@ public class DtoConfigElementProcessor {
     }
 
     private TypeSpec buildTypeSpec() {
-        initMembersToIgnore(doNotCopyFromSources);
+        initIgnoreAndRename();
         typeSpecBuilder = getTypeSpecBuilder();
 
         // NOTE: do not copy superclass/interfaces - they are only used for the template
@@ -98,7 +105,7 @@ public class DtoConfigElementProcessor {
 
     private void copyTemplateMembers() {
         for (Element templateElement : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
-            if (hasDtoIgnoreAnnotation(templateElement)) {
+            if (hasDtoIgnoreAnnotation(templateElement) || hasDtoRenameAnnotation(templateElement)) {
                 continue;
             }
             switch (templateElement.getKind()) {
@@ -139,10 +146,10 @@ public class DtoConfigElementProcessor {
      * <li>all members that have a {@link DtoIgnore} annotation</li>
      * <li>all non abstract members (those must be copied from the template verbatim)</li>
      * </ul>
-     *
-     * @param doNotCopyFromSources will be filled
+     * And it will also fill renameFromTo
      */
-    private void initMembersToIgnore(Set<String> doNotCopyFromSources) {
+    private void initIgnoreAndRename() {
+        renameFromTo.clear();
         doNotCopyFromSources.clear();
         for (Element element : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
             if (hasDtoIgnoreAnnotation(element)) {
@@ -151,26 +158,63 @@ public class DtoConfigElementProcessor {
                         doNotCopyFromSources.add(element.getSimpleName().toString());
                         break;
                     case FIELD:
-                        VariableElement variableElement = (VariableElement) element;
-                        String fieldInitializer = codeScanner.getFieldInitializerOrBlank
-                                (elementAnnotatedWithDtoConfig
-                                        , variableElement.getSimpleName().toString());
-                        if (fieldInitializer.endsWith("()")) {
-                            String memberName = StringUtils.removeLastChars(fieldInitializer, 2);
-                            doNotCopyFromSources.add(memberName);
+                        String initializerReferenceToSourceField = getInitializerReferenceToSourceFieldOrBlank(element);
+                        if (!initializerReferenceToSourceField.isEmpty()) {
+                            doNotCopyFromSources.add(initializerReferenceToSourceField);
                         }
                         break;
                 }
             }
+
             if (!element.getModifiers().contains(Modifier.ABSTRACT)) {
-                // non-abstract members are always ignored because they are copied directly from the template
-                doNotCopyFromSources.add(element.getSimpleName().toString());
+                if (hasDtoRenameAnnotation(element)) {
+                    String initializerReferenceToSourceField = getInitializerReferenceToSourceFieldOrBlank(element);
+                    if (initializerReferenceToSourceField.isEmpty()) {
+                        throw new RuntimeException(DtoRename.class.getCanonicalName() + " must only be used for " +
+                                "fields that reference a method on the source. " +
+                                "e.g. from the extended superclass or implemented interface");
+                    } else {
+                        renameFromTo.put(initializerReferenceToSourceField, element.getSimpleName().toString());
+                    }
+                } else {
+                    // other non-abstract members are always ignored because they are copied directly from the template
+                    doNotCopyFromSources.add(element.getSimpleName().toString());
+                }
             }
         }
     }
 
+    /**
+     * example for an initializer reference to a source filed on the template:
+     * <pre><code>
+     * public abstract class MyTemplate_ extends MyDomainObject {
+     *     &#64;DtoRename
+     *     Object renamedField = myDomainObjectField();
+     * }
+     * </code></pre>
+     * will return <code>myDomainObjectField</code>
+     *
+     * @param element
+     * @return the reference to the source field of a field with initializer on the template or blank.
+     */
+    private String getInitializerReferenceToSourceFieldOrBlank(Element element) {
+        if (element instanceof VariableElement) {
+            VariableElement variableElement = (VariableElement) element;
+            String fieldInitializer = codeScanner.getFieldInitializerOrBlank(elementAnnotatedWithDtoConfig
+                    , variableElement.getSimpleName().toString());
+            if (fieldInitializer.endsWith("()")) {
+                return StringUtils.removeLastChars(fieldInitializer, 2);
+            }
+        }
+        return "";
+    }
+
     private boolean hasDtoIgnoreAnnotation(Element element) {
         return element.getAnnotation(DtoIgnore.class) != null;
+    }
+
+    private boolean hasDtoRenameAnnotation(Element element) {
+        return element.getAnnotation(DtoRename.class) != null;
     }
 
     private Element getElementFromTemplateOrNull(Name elementName) {
@@ -203,7 +247,16 @@ public class DtoConfigElementProcessor {
                     } else {
                         // the template does not have a sourceElement with this name - copy it from the source
                         if (sourceMethodExecElement.getModifiers().contains(Modifier.ABSTRACT)) {
-                            MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(sourceMethodExecElement);
+                            final String sourceMethodName = sourceMethodExecElement.getSimpleName().toString();
+                            final String targetMethodName;
+                            if (renameFromTo.containsKey(sourceMethodName)) {
+                                targetMethodName = renameFromTo.get(sourceMethodName);
+                                renameFromTo.remove(sourceMethodName);
+                            } else {
+                                targetMethodName = sourceMethodName;
+                            }
+                            MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(sourceMethodExecElement
+                                    , targetMethodName);
                             typeSpecBuilder.addMethod(copyMethodBuilder.build());
                         }
                     }

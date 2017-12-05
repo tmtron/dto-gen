@@ -60,6 +60,11 @@ public class ClassTemplateTest extends AnnotationProcessorTest {
     }
 
     @Test
+    public void testRenameMethod() {
+        assertGenerationWithoutWarnings("RenameMethod");
+    }
+
+    @Test
     public void testUserDto() {
         assertGenerationWithoutWarnings("UserDto");
     }
