@@ -16,6 +16,7 @@
 package com.tmtron.dtogen.processor;
 
 import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
@@ -43,10 +44,44 @@ public class CodeScanner {
         } else {
             return "";
         }
+    }
+
+    public String getMethodBodyOrBlank(TypeElement parentOfMethod, String methodName) {
+        MethodScanner scanner = new MethodScanner(methodName);
+        TreePath path = treesInstance.getPath(parentOfMethod);
+        if (path != null) {
+            MethodTree methodTree = scanner.scan(path, treesInstance);
+            if (methodTree != null) {
+                return methodTree.getBody().toString();
+            }
+        }
+        return "";
+    }
+
+    /**
+     * A {@link TreePathScanner} which returns a single result or null when you call scan()
+     *
+     * @param <R> the result type
+     */
+    private static class ScannerWithSingleResult<R> extends TreePathScanner<R, Trees> {
+
+        @Override
+        public final R reduce(R item1, R item2) {
+            if (item1 != null) {
+                return item1;
+            } else if (item2 != null) {
+                return item2;
+            } else {
+                return null;
+            }
+        }
 
     }
 
-    private static class FieldScanner extends TreePathScanner<ExpressionTree, Trees> {
+    /**
+     * returns the initializer of a field or {@code null}
+     */
+    private static class FieldScanner extends ScannerWithSingleResult<ExpressionTree> {
 
         private final String fieldName;
 
@@ -55,20 +90,27 @@ public class CodeScanner {
         }
 
         @Override
-        public ExpressionTree reduce(ExpressionTree et1, ExpressionTree et2) {
-            if (et1 != null) {
-                return et1;
-            } else if (et2 != null) {
-                return et2;
+        public ExpressionTree visitVariable(VariableTree variableTree, Trees trees) {
+            if (variableTree.getName().toString().equals(this.fieldName)) {
+                return variableTree.getInitializer();
             } else {
                 return null;
             }
         }
+    }
+
+    private static class MethodScanner extends ScannerWithSingleResult<MethodTree> {
+
+        private final String nameToFind;
+
+        private MethodScanner(String nameToFind) {
+            this.nameToFind = nameToFind;
+        }
 
         @Override
-        public ExpressionTree visitVariable(VariableTree variableTree, Trees trees) {
-            if (variableTree.getName().toString().equals(this.fieldName)) {
-                return variableTree.getInitializer();
+        public MethodTree visitMethod(MethodTree methodTree, Trees trees) {
+            if (methodTree.getName().contentEquals(nameToFind)) {
+                return methodTree;
             } else {
                 return null;
             }
