@@ -15,59 +15,60 @@
  */
 package com.tmtron.dtogen.processor;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class StringUtilsTest {
 
     @Test
     public void removeCurlyBraces() {
-        Assert.assertEquals("x=3;", StringUtils.removeCurlyBraces("{x=3;}"));
+        assertThat("x=3;").isEqualTo(StringUtils.removeCurlyBraces("{x=3;}"));
     }
 
     @Test
     public void removeCurlyBracesWithLineBreaks() {
-        Assert.assertEquals("\r\nx=3;\r\n", StringUtils.removeCurlyBraces("{\r\nx=3;\r\n}"));
+        assertThat("\r\nx=3;\r\n").isEqualTo(StringUtils.removeCurlyBraces("{\r\nx=3;\r\n}"));
     }
 
     @Test
     public void removeCurlyBracesReturnsInput() {
-        Assert.assertEquals("y=3;", StringUtils.removeCurlyBraces("y=3;"));
+        assertThat("y=3;").isEqualTo(StringUtils.removeCurlyBraces("y=3;"));
     }
 
     @Test
     public void removeCurlyBracesForNull() {
-        Assert.assertEquals("", StringUtils.removeCurlyBraces(null));
+        assertThat("").isEqualTo(StringUtils.removeCurlyBraces(null));
     }
 
     @Test
     public void removeLastCharsForNull() {
-        Assert.assertEquals("", StringUtils.removeLastChars(null, 7));
+        assertThat("").isEqualTo(StringUtils.removeLastChars(null, 7));
     }
 
     @Test
     public void removeLastCharsForZero() {
-        Assert.assertEquals("abc", StringUtils.removeLastChars("abc", 0));
+        assertThat("abc").isEqualTo(StringUtils.removeLastChars("abc", 0));
     }
 
     @Test
     public void removeLastCharsForNegative() {
-        Assert.assertEquals("abc", StringUtils.removeLastChars("abc", -3));
+        assertThat("abc").isEqualTo(StringUtils.removeLastChars("abc", -3));
     }
 
     @Test
     public void removeLastCharsForMoreThanInputLen() {
-        Assert.assertEquals("", StringUtils.removeLastChars("abc", 8));
+        assertThat("").isEqualTo(StringUtils.removeLastChars("abc", 8));
     }
 
     @Test
     public void removeLastChars() {
-        Assert.assertEquals("a", StringUtils.removeLastChars("abc", 2));
+        assertThat("a").isEqualTo(StringUtils.removeLastChars("abc", 2));
     }
 
     @Test
     public void removeLastCharsForAll() {
-        Assert.assertEquals("", StringUtils.removeLastChars("abc", 3));
+        assertThat("").isEqualTo(StringUtils.removeLastChars("abc", 3));
     }
 
 }
