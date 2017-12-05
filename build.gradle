@@ -39,6 +39,15 @@ plugins {
      *   Android>Lint>Correctness>Obsolete Gradle Dependency
      */
     id 'com.github.ben-manes.versions' version '0.17.0'
+    // for publishing
+    id "com.jfrog.bintray" version "1.8.0"
+}
+
+// https://docs.travis-ci.com/user/environment-variables/
+final isCi = System.getenv("TRAVIS") != null
+
+ext {
+    bintrayDryRun = true
 }
 
 subprojects {
@@ -54,6 +63,11 @@ subprojects {
 
     dependencies {
         testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+
+    if (!isCi) {
+        // we don't need the bintray features for the ci build
+        apply from: rootProject.file('gradle/bintray.gradle')
     }
 
     apply plugin: "com.github.hierynomus.license"
