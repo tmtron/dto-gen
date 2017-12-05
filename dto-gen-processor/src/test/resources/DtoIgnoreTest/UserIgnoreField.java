@@ -15,9 +15,17 @@
  */
 package com.tmtron.dtogen.processor.test;
 
+import javax.annotation.Generated;
+
 import org.immutables.value.Value;
 
 @Value.Immutable
+// the @DtoConfig annotation must be skipped
+@Generated(
+        value = "com.tmtron.dtogen.processor.DtoConfig",
+        date = "1976-12-14T15:16:17.234+02:00",
+        comments = "origin=com.tmtron.dtogen.processor.test.UserIgnoreField_"
+)
 // the class visibility must be public because the template has public (User = package)
 public abstract class UserIgnoreField {
 

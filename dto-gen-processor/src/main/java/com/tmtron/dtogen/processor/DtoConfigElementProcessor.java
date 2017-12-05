@@ -86,6 +86,9 @@ public class DtoConfigElementProcessor {
         // NOTE: do not copy superclass/interfaces - they are only used for the template
         copyTemplateClassModifiers();
         copyTemplateClassAnnotations();
+        AnnotationSpec generatedAnnotation = JavaPoetUtil.createGeneratedAnnotation(DtoConfig.class,
+                elementAnnotatedWithDtoConfig.getQualifiedName().toString());
+        typeSpecBuilder.addAnnotation(generatedAnnotation);
         copyTemplateMembers();
         // TODO: maybe copy javadoc
 

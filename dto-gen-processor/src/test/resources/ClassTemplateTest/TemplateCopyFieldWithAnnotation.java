@@ -15,9 +15,15 @@
  */
 package com.tmtron.dtogen.processor.test;
 
+import javax.annotation.Generated;
 import javax.annotation.Nullable;
 
 // the @DtoConfig annotation must be skipped
+@Generated(
+        value = "com.tmtron.dtogen.processor.DtoConfig",
+        date = "1976-12-14T15:16:17.234+02:00",
+        comments = "origin=com.tmtron.dtogen.processor.test.TemplateCopyFieldWithAnnotation_"
+)
 public abstract class TemplateCopyFieldWithAnnotation {
 
     // the template member field, including the annotations must be copied from the template

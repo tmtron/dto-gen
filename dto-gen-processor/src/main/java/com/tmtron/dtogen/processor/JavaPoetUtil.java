@@ -22,11 +22,13 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Generated;
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
@@ -118,6 +120,33 @@ public class JavaPoetUtil {
         builder.addAnnotations(getAnnotationSpecs(variableElement));
 
         return builder;
+    }
+
+    /**
+     * Creates a Generated annotation
+     * <pre><code>
+     *  {@literal @}Generated(
+     *    value = "com.tmtron.dtogen.processor.DtoConfig",
+     *    date = "1976-12-14T15:16:17.234+02:00",
+     *    comments = "origin=[com.test.DtoTemplate_]"
+     *    )
+     * </code></pre>
+     *
+     * @param annotationProcessorClass the class-name will be used for the value item
+     */
+    public static AnnotationSpec createGeneratedAnnotation(Class<?> annotationProcessorClass
+            , String originClassName) {
+        String dateString = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(AnnotationProcessingUtil.now());
+        AnnotationSpec.Builder annotationSpecBuilder = AnnotationSpec.builder(Generated.class)
+                .addMember("value", "$S", annotationProcessorClass.getCanonicalName())
+                .addMember("date", "$S", dateString);
+
+        StringBuilder sbOrigin = new StringBuilder();
+        String commentsString = "origin=" + originClassName;
+
+        annotationSpecBuilder.addMember("comments", "$S", commentsString);
+
+        return annotationSpecBuilder.build();
     }
 
 }

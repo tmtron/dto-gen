@@ -16,6 +16,14 @@
 package com.tmtron.dtogen.processor.test;
 
 // the @DtoConfig annotation must be skipped
+
+import javax.annotation.Generated;
+
+@Generated(
+        value = "com.tmtron.dtogen.processor.DtoConfig",
+        date = "1976-12-14T15:16:17.234+02:00",
+        comments = "origin=com.tmtron.dtogen.processor.test.RenameMethod_"
+)
 public abstract class RenameMethod {
 
     // the id field must be copied and must use the type, modifiers, etc. from the source field

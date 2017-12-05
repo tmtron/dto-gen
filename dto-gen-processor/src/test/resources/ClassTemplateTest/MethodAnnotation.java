@@ -15,8 +15,16 @@
  */
 package com.tmtron.dtogen.processor.test;
 
+import javax.annotation.Generated;
+
 import org.immutables.value.Value;
 
+// the @Value.Style from the source class must NOT be copied
+@Generated(
+        value = "com.tmtron.dtogen.processor.DtoConfig",
+        date = "1976-12-14T15:16:17.234+02:00",
+        comments = "origin=com.tmtron.dtogen.processor.test.MethodAnnotation_"
+)
 public abstract class MethodAnnotation {
 
     // the annotation from the template must be copied

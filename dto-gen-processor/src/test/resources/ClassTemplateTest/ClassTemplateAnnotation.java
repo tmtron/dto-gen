@@ -15,11 +15,18 @@
  */
 package com.tmtron.dtogen.processor.test;
 
+import javax.annotation.Generated;
+
 import org.immutables.value.Value;
 
 // the annotation from the template must be copied
 @Value.Immutable
 // the @Value.Style from the source class must NOT be copied
+@Generated(
+        value = "com.tmtron.dtogen.processor.DtoConfig",
+        date = "1976-12-14T15:16:17.234+02:00",
+        comments = "origin=com.tmtron.dtogen.processor.test.ClassTemplateAnnotation_"
+)
 public abstract class ClassTemplateAnnotation {
 
     // the id field must be copied
