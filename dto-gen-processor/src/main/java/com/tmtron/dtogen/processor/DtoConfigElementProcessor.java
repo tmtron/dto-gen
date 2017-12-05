@@ -75,10 +75,11 @@ public class DtoConfigElementProcessor {
         initMembersToIgnore(doNotCopyFromSources);
         typeSpecBuilder = getTypeSpecBuilder();
 
-        copyClassModifiers();
-        copyClassAnnotations();
+        // NOTE: do not copy superclass/interfaces - they are only used for the template
+        copyTemplateClassModifiers();
+        copyTemplateClassAnnotations();
+        copyTemplateMembers();
         // TODO: maybe copy javadoc
-        // TODO: do not copy superclass/interfaces - they are only used for the template
 
         List<? extends TypeMirror> interfaces = elementAnnotatedWithDtoConfig.getInterfaces();
         for (TypeMirror interfaceTm : interfaces) {
@@ -94,6 +95,25 @@ public class DtoConfigElementProcessor {
         return typeSpecBuilder.build();
     }
 
+    private void copyTemplateMembers() {
+        for (Element templateElement : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
+            if (hasDtoIgnoreAnnotation(templateElement)) {
+                continue;
+            }
+            switch (templateElement.getKind()) {
+                case METHOD:
+                    ExecutableElement templateMethodExecElement = (ExecutableElement) templateElement;
+                    if (templateMethodExecElement.getModifiers().contains(Modifier.ABSTRACT)) {
+                        MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(templateMethodExecElement);
+                        typeSpecBuilder.addMethod(copyMethodBuilder.build());
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     /**
      * This function will fill the doNotCopyFromSources set with all elements that must not be copied from any source
      * to the target. This includes:
@@ -107,7 +127,7 @@ public class DtoConfigElementProcessor {
     private void initMembersToIgnore(Set<String> doNotCopyFromSources) {
         doNotCopyFromSources.clear();
         for (Element element : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
-            if (element.getAnnotation(DtoIgnore.class) != null) {
+            if (hasDtoIgnoreAnnotation(element)) {
                 switch (element.getKind()) {
                     case METHOD:
                         doNotCopyFromSources.add(element.getSimpleName().toString());
@@ -129,6 +149,10 @@ public class DtoConfigElementProcessor {
                 doNotCopyFromSources.add(element.getSimpleName().toString());
             }
         }
+    }
+
+    private boolean hasDtoIgnoreAnnotation(Element element) {
+        return element.getAnnotation(DtoIgnore.class) != null;
     }
 
     private Element getElementFromTemplateOrNull(Name elementName) {
@@ -172,13 +196,13 @@ public class DtoConfigElementProcessor {
         }
     }
 
-    private void copyClassAnnotations() {
+    private void copyTemplateClassAnnotations() {
         // copy all annotations, ..
         List<AnnotationSpec> annotationSpecs = JavaPoetUtil.getAnnotationSpecs(elementAnnotatedWithDtoConfig);
         typeSpecBuilder.addAnnotations(annotationSpecs);
     }
 
-    private void copyClassModifiers() {
+    private void copyTemplateClassModifiers() {
         Modifier[] modifiers = elementAnnotatedWithDtoConfig.getModifiers().toArray(new Modifier[0]);
         typeSpecBuilder.addModifiers(modifiers);
     }

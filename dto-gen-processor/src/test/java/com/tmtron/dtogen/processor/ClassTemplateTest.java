@@ -35,6 +35,11 @@ public class ClassTemplateTest extends AnnotationProcessorTest {
     }
 
     @Test
+    public void testTemplateCopyAbstractMethod() {
+        assertGenerationWithoutWarnings("TemplateCopyAbstractMethod");
+    }
+
+    @Test
     public void testUserDto() {
         assertGenerationWithoutWarnings("UserDto");
     }
