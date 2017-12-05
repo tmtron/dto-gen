@@ -45,6 +45,21 @@ public class ClassTemplateTest extends AnnotationProcessorTest {
     }
 
     @Test
+    public void testTemplateCopyField() {
+        assertGenerationWithoutWarnings("TemplateCopyField");
+    }
+
+    @Test
+    public void testTemplateCopyFieldWithAnnotation() {
+        assertGenerationWithoutWarnings("TemplateCopyFieldWithAnnotation");
+    }
+
+    @Test
+    public void testTemplateCopyFieldWithInitializer() {
+        assertGenerationWithoutWarnings("TemplateCopyFieldWithInitializer");
+    }
+
+    @Test
     public void testUserDto() {
         assertGenerationWithoutWarnings("UserDto");
     }

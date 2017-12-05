@@ -18,6 +18,7 @@ package com.tmtron.dtogen.processor;
 import com.google.auto.common.MoreTypes;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
@@ -112,6 +113,18 @@ public class DtoConfigElementProcessor {
                     }
 
                     typeSpecBuilder.addMethod(copyMethodBuilder.build());
+                    break;
+                case FIELD:
+                    VariableElement variableElement = (VariableElement) templateElement;
+                    FieldSpec.Builder fieldBuilder = JavaPoetUtil.copyField(variableElement);
+                    String fieldInitializer = codeScanner.getFieldInitializerOrBlank(elementAnnotatedWithDtoConfig
+                            , variableElement.getSimpleName().toString());
+                    if (!fieldInitializer.isEmpty()) {
+                        fieldInitializer = StringUtils.removeCurlyBraces(fieldInitializer);
+                        fieldBuilder.initializer(fieldInitializer);
+                    }
+
+                    typeSpecBuilder.addField(fieldBuilder.build());
                     break;
                 default:
                     break;
@@ -208,7 +221,7 @@ public class DtoConfigElementProcessor {
     }
 
     private void copyTemplateClassModifiers() {
-        Modifier[] modifiers = elementAnnotatedWithDtoConfig.getModifiers().toArray(new Modifier[0]);
+        Modifier[] modifiers = JavaPoetUtil.modifiersAsArray(elementAnnotatedWithDtoConfig.getModifiers());
         typeSpecBuilder.addModifiers(modifiers);
     }
 

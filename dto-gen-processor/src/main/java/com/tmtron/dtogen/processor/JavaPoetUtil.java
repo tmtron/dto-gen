@@ -16,6 +16,7 @@
 package com.tmtron.dtogen.processor;
 
 import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
@@ -89,4 +90,20 @@ public class JavaPoetUtil {
         }
         return result;
     }
+
+    public static Modifier[] modifiersAsArray(Set<Modifier> modifiers) {
+        return modifiers.toArray(new Modifier[0]);
+    }
+
+    public static FieldSpec.Builder copyField(VariableElement variableElement) {
+        String fieldName = variableElement.getSimpleName().toString();
+        Modifier[] modifiers = modifiersAsArray(variableElement.getModifiers());
+
+        TypeName typeName = TypeName.get(variableElement.asType());
+        FieldSpec.Builder builder = FieldSpec.builder(typeName, fieldName, modifiers);
+        builder.addAnnotations(getAnnotationSpecs(variableElement));
+
+        return builder;
+    }
+
 }
