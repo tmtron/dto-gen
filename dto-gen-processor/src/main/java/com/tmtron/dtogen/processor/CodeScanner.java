@@ -51,7 +51,7 @@ public class CodeScanner {
         TreePath path = treesInstance.getPath(parentOfMethod);
         if (path != null) {
             MethodTree methodTree = scanner.scan(path, treesInstance);
-            if (methodTree != null) {
+            if (methodTree != null && methodTree.getBody() != null) {
                 return methodTree.getBody().toString();
             }
         }
