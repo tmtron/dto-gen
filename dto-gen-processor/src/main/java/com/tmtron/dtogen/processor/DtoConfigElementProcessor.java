@@ -42,7 +42,7 @@ public class DtoConfigElementProcessor {
     private final TypeElement elementAnnotatedWithDtoConfig;
 
     private TypeSpec.Builder typeSpecBuilder;
-    private final Set<String> membersToIgnore = new HashSet<>();
+    private final Set<String> doNotCopyFromSources = new HashSet<>();
     private final CodeScanner codeScanner;
 
     public DtoConfigElementProcessor(ProcessingEnvironment processingEnv, TypeElement elementAnnotatedWithDtoConfig) {
@@ -72,7 +72,7 @@ public class DtoConfigElementProcessor {
     }
 
     private TypeSpec buildTypeSpec() {
-        initMembersToIgnore(membersToIgnore);
+        initMembersToIgnore(doNotCopyFromSources);
         typeSpecBuilder = getTypeSpecBuilder();
 
         copyClassModifiers();
@@ -94,24 +94,39 @@ public class DtoConfigElementProcessor {
         return typeSpecBuilder.build();
     }
 
-    private void initMembersToIgnore(Set<String> membersToIgnore) {
-        membersToIgnore.clear();
+    /**
+     * This function will fill the doNotCopyFromSources set with all elements that must not be copied from any source
+     * to the target. This includes:
+     * <ul>
+     * <li>all members that have a {@link DtoIgnore} annotation</li>
+     * <li>all non abstract members (those must be copied from the template verbatim)</li>
+     * </ul>
+     *
+     * @param doNotCopyFromSources will be filled
+     */
+    private void initMembersToIgnore(Set<String> doNotCopyFromSources) {
+        doNotCopyFromSources.clear();
         for (Element element : elementAnnotatedWithDtoConfig.getEnclosedElements()) {
             if (element.getAnnotation(DtoIgnore.class) != null) {
                 switch (element.getKind()) {
                     case METHOD:
-                        membersToIgnore.add(element.getSimpleName().toString());
+                        doNotCopyFromSources.add(element.getSimpleName().toString());
                         break;
                     case FIELD:
                         VariableElement variableElement = (VariableElement) element;
-                        String fieldInitializer = codeScanner.getFieldInitializerOrBlank(elementAnnotatedWithDtoConfig
-                                , variableElement.getSimpleName().toString());
+                        String fieldInitializer = codeScanner.getFieldInitializerOrBlank
+                                (elementAnnotatedWithDtoConfig
+                                        , variableElement.getSimpleName().toString());
                         if (fieldInitializer.endsWith("()")) {
                             String memberName = StringUtils.removeLastChars(fieldInitializer, 2);
-                            membersToIgnore.add(memberName);
+                            doNotCopyFromSources.add(memberName);
                         }
                         break;
                 }
+            }
+            if (!element.getModifiers().contains(Modifier.ABSTRACT)) {
+                // non-abstract members are always ignored because they are copied directly from the template
+                doNotCopyFromSources.add(element.getSimpleName().toString());
             }
         }
     }
@@ -126,25 +141,27 @@ public class DtoConfigElementProcessor {
     }
 
     /**
+     * Will loop over all elements in the sourceTypeElement (which is the superclass of the template, or
+     * an implemented interface) and may copy it to the target class
+     *
      * @param sourceTypeElement a source class or interface from which we may copy methods
      */
     private void processSourceElement(TypeElement sourceTypeElement) {
-        for (Element element : sourceTypeElement.getEnclosedElements()) {
-            if (membersToIgnore.contains(element.getSimpleName().toString())) {
+        for (Element sourceElement : sourceTypeElement.getEnclosedElements()) {
+            if (doNotCopyFromSources.contains(sourceElement.getSimpleName().toString())) {
                 continue;
             }
 
-            switch (element.getKind()) {
+            switch (sourceElement.getKind()) {
                 case METHOD:
-                    ExecutableElement methodExecutableElement = (ExecutableElement) element;
-                    if (element.getModifiers().contains(Modifier.ABSTRACT)) {
-                        Element templateElementOrNull = getElementFromTemplateOrNull(element.getSimpleName());
-                        if (templateElementOrNull != null) {
-                            // the template has an element with this name - use it
-                        } else {
-                            // the template does not have an element with this name - copy it from the implemented
-                            // interface
-                            MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(methodExecutableElement);
+                    ExecutableElement sourceMethodExecElement = (ExecutableElement) sourceElement;
+                    Element templateElementOrNull = getElementFromTemplateOrNull(sourceElement.getSimpleName());
+                    if (templateElementOrNull != null) {
+                        // TODO: the template has a sourceElement with this name - use it
+                    } else {
+                        // the template does not have a sourceElement with this name - copy it from the source
+                        if (sourceMethodExecElement.getModifiers().contains(Modifier.ABSTRACT)) {
+                            MethodSpec.Builder copyMethodBuilder = JavaPoetUtil.copyMethod(sourceMethodExecElement);
                             typeSpecBuilder.addMethod(copyMethodBuilder.build());
                         }
                     }
