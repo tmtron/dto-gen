@@ -18,8 +18,8 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="dto-gen-lib_main" />
     <orderEntry type="library" name="Gradle: com.squareup:javapoet:1.9.0" level="project" />
+    <orderEntry type="module" module-name="dto-gen-lib_main" />
     <orderEntry type="library" name="Gradle: com.google.auto.service:auto-service:1.0-rc3" level="project" />
     <orderEntry type="library" name="Gradle: com.google.auto:auto-common:0.8" level="project" />
     <orderEntry type="library" name="Gradle: com.google.guava:guava:19.0" level="project" />
