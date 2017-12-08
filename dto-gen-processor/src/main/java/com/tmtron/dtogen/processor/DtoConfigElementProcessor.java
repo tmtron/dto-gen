@@ -191,7 +191,7 @@ public class DtoConfigElementProcessor {
      * example for an initializer reference to a source filed on the template:
      * <pre><code>
      * public abstract class MyTemplate_ extends MyDomainObject {
-     *     &#64;DtoRename
+     *     {@literal @}DtoRename
      *     Object renamedField = myDomainObjectField();
      * }
      * </code></pre>

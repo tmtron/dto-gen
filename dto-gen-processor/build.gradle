@@ -10,8 +10,17 @@ final VERSION_IMMUTABLES = '2.5.6'
 dependencies {
     implementation project(':dto-gen-lib')
 
-    implementation 'com.squareup:javapoet:1.9.0'
-    implementation 'com.google.auto.service:auto-service:1.0-rc3'
+    compile 'com.squareup:javapoet:1.9.0'
+
+    final VERSION_AUTO_SERVICE = '1.0-rc3'
+    implementation "com.google.auto.service:auto-service:${VERSION_AUTO_SERVICE}"
+    /* NOTE: since we use the apt plugin, we must also explicitly add the
+     *       auto-services dependency to the apt configuration
+     * otherwise the annotation processor will not be executed, and the javax.annotation.processing.Processor file
+     * in the META-INF directory will not be created
+     */
+    apt "com.google.auto.service:auto-service:${VERSION_AUTO_SERVICE}"
+
     implementation 'com.google.auto:auto-common:0.8'
     implementation files(Jvm.current().getToolsJar())
 
